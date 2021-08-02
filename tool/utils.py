@@ -111,6 +111,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
 
     width = img.shape[1]
     height = img.shape[0]
+    count = 0
     for i in range(len(boxes)):
         box = boxes[i]
         x1 = int(box[0] * width)
@@ -123,6 +124,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
         else:
             rgb = (255, 0, 0)
         if len(box) >= 7 and class_names:
+            count+=1
             cls_conf = box[5]
             cls_id = box[6]
             print('%s: %f' % (class_names[cls_id], cls_conf))
@@ -136,7 +138,9 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
         img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
     if savename:
+        print("Total Object Count: %d" % count)
         print("save plot results to %s" % savename)
+        count = 0
         cv2.imwrite(savename, img)
     return img
 
