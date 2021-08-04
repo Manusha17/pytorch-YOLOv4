@@ -39,7 +39,7 @@ def detect_cv2(cfgfile, weightfile, imgfile):
     elif num_classes == 80:
         namesfile = 'data/coco.names'
     else:
-        namesfile = 'data/x.names'
+        namesfile = 'data/obj.names'
     class_names = load_class_names(namesfile)
 
     img = cv2.imread(imgfile)
@@ -67,21 +67,21 @@ def detect_cv2_camera(cfgfile, weightfile):
     if use_cuda:
         m.cuda()
 
-    cap = cv2.VideoCapture(0)
-    # cap = cv2.VideoCapture("./test.mp4")
-    cap.set(3, 1280)
-    cap.set(4, 720)
+    #cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("./data/JOPORN_NET_23912_360p.mp4")
+    #cap.set(3, 1280)
+    #cap.set(4, 720)
     print("Starting the YOLO loop...")
-
     num_classes = m.num_classes
     if num_classes == 20:
         namesfile = 'data/voc.names'
     elif num_classes == 80:
         namesfile = 'data/coco.names'
     else:
-        namesfile = 'data/x.names'
+        namesfile = 'data/obj.names'
     class_names = load_class_names(namesfile)
 
+    i=0
     while True:
         ret, img = cap.read()
         sized = cv2.resize(img, (m.width, m.height))
@@ -91,10 +91,12 @@ def detect_cv2_camera(cfgfile, weightfile):
         boxes = do_detect(m, sized, 0.4, 0.6, use_cuda)
         finish = time.time()
         print('Predicted in %f seconds.' % (finish - start))
+        print('FPS: %d ' % int ( 1 / (finish - start)))
+        i+=1
+        result_img = plot_boxes_cv2(img, boxes[0], savename =None, class_names=class_names)
+        # result_img = plot_boxes_cv2(img, boxes[0], savename = (str(i) + '.jpg'), class_names=class_names)
 
-        result_img = plot_boxes_cv2(img, boxes[0], savename=None, class_names=class_names)
-
-        cv2.imshow('Yolo demo', result_img)
+        # cv2.imshow('Yolo demo', result_img)
         cv2.waitKey(1)
 
     cap.release()
@@ -118,7 +120,7 @@ def detect_skimage(cfgfile, weightfile, imgfile):
     elif num_classes == 80:
         namesfile = 'data/coco.names'
     else:
-        namesfile = 'data/x.names'
+        namesfile = 'data/obj.names'
     class_names = load_class_names(namesfile)
 
     img = io.imread(imgfile)
@@ -133,7 +135,6 @@ def detect_skimage(cfgfile, weightfile, imgfile):
 
     plot_boxes_cv2(img, boxes, savename='predictions.jpg', class_names=class_names)
 
-
 def get_args():
     parser = argparse.ArgumentParser('Test your image or video by trained model.')
     parser.add_argument('-cfgfile', type=str, default='./cfg/yolov4.cfg',
@@ -142,7 +143,6 @@ def get_args():
                         default='./checkpoints/Yolov4_epoch1.pth',
                         help='path of trained model.', dest='weightfile')
     parser.add_argument('-imgfile', type=str,
-                        default='./data/mscoco2017/train2017/190109_180343_00154162.jpg',
                         help='path of your image file.', dest='imgfile')
     args = parser.parse_args()
 
