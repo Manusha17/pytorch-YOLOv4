@@ -14,9 +14,11 @@
 # import time
 # from PIL import Image, ImageDraw
 # from models.tiny_yolo import TinyYoloNet
+from numpy import False_
 from tool.utils import *
 from tool.torch_utils import *
 from tool.darknet2pytorch import Darknet
+import torch
 import argparse
 
 """hyper parameters"""
@@ -27,7 +29,10 @@ def detect_cv2(cfgfile, weightfile, imgfile):
     m = Darknet(cfgfile)
 
     m.print_network()
-    m.load_weights(weightfile)
+    if args.torch:
+        m.load_state_dict(torch.load(weightfile))
+    else:
+        m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
 
     if use_cuda:
@@ -144,6 +149,8 @@ def get_args():
                         help='path of trained model.', dest='weightfile')
     parser.add_argument('-imgfile', type=str,
                         help='path of your image file.', dest='imgfile')
+    parser.add_argument('-torch', type=bool, default=False,
+                        help='use torch weights')
     args = parser.parse_args()
 
     return args
