@@ -95,8 +95,9 @@ def nms_cpu(boxes, confs, nms_thresh=0.5, min_mode=False):
     return np.array(keep)
 
 
-
+count_c1, count_c2, count_c3 = 0,0,0
 def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
+    global count_c1, count_c2, count_c3
     import cv2
     img = np.copy(img)
     colors = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 1, 0], [1, 0, 0]], dtype=np.float32)
@@ -127,6 +128,10 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
         if len(box) >= 7 and class_names:
             cls_conf = box[5]
             cls_id = box[6]
+            # algo for checking classes in multi frames
+            #class_array = np.empty(shape=(5,3), dtype = int)
+            #class_array[i] = cls_id
+            #print(class_array)
             print('%s: %f' % (class_names[cls_id], cls_conf))
             objects_count(class_names[cls_id], count)
             classes = len(class_names)
@@ -139,11 +144,29 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
             img = cv2.putText(img, class_names[cls_id], (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
         img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
     if savename:
-        for key, value in count.items():
-            print("{} count: {}".format(key, value)) 
-        print('-----------------------------------')
         print("saved plot results to %s" % savename)
         cv2.imwrite(savename, img)
+    for key, value in count.items():
+        print("{} count: {}".format(key, value)) 
+        print('-----------------------------------')
+    if 'organ1-exposure' in count.keys():
+        count_c1+=1
+    else:
+        count_c1=0
+    if 'organ2-exposure' in count.keys():
+        count_c2+=1
+    else:
+        count_c2=0
+    if 'organ3-exposure' in count.keys():
+        count_c3+=1
+    else:
+        count_c3=0
+    if count_c1 and count_c1%3==0:
+        print('organ1-exposure successful detection') 
+    if count_c2 and count_c2%3==0:
+        print('organ2-exposure successful detection') 
+    if count_c3 and count_c3%3==0:
+        print('organ3-exposure successful detection') 
     return img
 
 def objects_count(class_name, count, by_class=True):
@@ -152,6 +175,7 @@ def objects_count(class_name, count, by_class=True):
     if by_class:
         # loop through total number of objects found
         count[class_name] = count.get(class_name, 0) + 1
+        
 
     # else count total objects found
     else:
@@ -242,10 +266,10 @@ def post_processing(img, conf_thresh, nms_thresh, output):
 
     t3 = time.time()
 
-    print('-----------------------------------')
-    print('       max and argmax : %f' % (t2 - t1))
-    print('                  nms : %f' % (t3 - t2))
-    print('Post processing total : %f' % (t3 - t1))
-    print('-----------------------------------')
+    # print('-----------------------------------')
+    # print('       max and argmax : %f' % (t2 - t1))
+    # print('                  nms : %f' % (t3 - t2))
+    # print('Post processing total : %f' % (t3 - t1))
+    # print('-----------------------------------')
     
     return bboxes_batch
